@@ -16,7 +16,7 @@ jobs:
           - esp32:esp32:esp32
           - esp32:esp32:esp32:PSRAM=enabled,PartitionScheme=default,FlashMode=qio
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: arduino/compile-sketches@v1
         with:
           fqbn: ${{ matrix.fqbn }}
