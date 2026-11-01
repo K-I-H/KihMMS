@@ -1,3 +1,5 @@
+<p align="center"><img src="extras/logo.svg" alt="KihMMS logo" width="560"></p>
+
 # KihMMS
 
 **MMS and SMS for ESP32 with SIMCom A76xx 4G modems** – an Arduino library.
