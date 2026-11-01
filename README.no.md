@@ -26,7 +26,7 @@ automatisk, og **oppdatere programmet på kortet over MMS** (OTAMMS, se under).
 
 ## Installering
 
-**Arduino IDE:** last ned [KihMMS-0.1.0.zip](https://github.com/K-I-H/KihMMS/archive/refs/tags/v0.1.0.zip), og velg
+**Arduino IDE:** last ned [KihMMS-0.2.0.zip](https://github.com/K-I-H/KihMMS/archive/refs/tags/v0.2.0.zip), og velg
 *Skisse → Inkluder bibliotek → Legg til .ZIP-bibliotek …* og fila. (Nyeste fra `main`:
 [main.zip](https://github.com/K-I-H/KihMMS/archive/refs/heads/main.zip).)
 
@@ -59,6 +59,18 @@ Standardpinner (LilyGO T-A7670): modem TX/RX på GPIO 26/27, PWRKEY 4, strøm ti
 | `extras/docs/FINDINGS.md` | Hva som stopper MMS på disse modemene, og hvordan det ble løst (på engelsk). |
 | `extras/docs/OPERATORS.md` | MMS-innstillinger per operatør, og hvilke som er prøvd. |
 
+## Eksempler
+
+Åpnes i Arduino IDE under *Fil → Eksempler → KihMMS*.
+
+| Eksempel | Hva det viser | Trenger |
+|---|---|---|
+| **BuildMms** | Lag en MMS med emne, tekst (æøå, emoji) og vedlegg; skriv den ut og les den tilbake | hvilken som helst ESP32 |
+| **DecodeSmsPdu** | Dekod SMS i PDU-modus: GSM-alfabetet med æøå og €, UCS2 med emoji, avsender med bokstaver | hvilken som helst ESP32 |
+| **ParseMmsNotification** | Les et MMS-varsel: avsender, emne og adressen der MMS-en hentes | hvilken som helst ESP32 |
+| **SendSms** | Slå på modemet og send en SMS med AT-kommandoer | LilyGO T-A7670 + SIM |
+| **ReceiveSms** | Motta SMS (lagret på SIM-kortet, lest i PDU-modus) og dekod dem; kjenn igjen MMS-varsler | LilyGO T-A7670 + SIM |
+
 ## OTAMMS – nytt program over MMS
 
 Programfila deles i biter, hver bit signeres (HMAC-SHA256 med en hemmelig nøkkel) og sendes som MMS-vedlegg. Kortet samler
@@ -71,7 +83,8 @@ Kommer hit sammen med driveren.
 - [x] MMS-pakken, SMS-dekoderen, lesing av MMS-varsler og -meldinger
 - [ ] Modemdriveren (`KihModem`)
 - [ ] MMS over PPP (sende med vedlegg, hente og lagre på SD)
-- [ ] Eksempler
+- [x] Eksempler: lag MMS, dekod SMS, les MMS-varsel, send SMS, motta SMS
+- [ ] Eksempler med driveren: send MMS, bilde fra SD, motta til SD, autosvar
 - [ ] OTAMMS-mottaker, Python-pakker og Android-appen
 
 ## Lisens

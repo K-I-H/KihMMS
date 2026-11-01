@@ -26,7 +26,7 @@ Everything has been tried on a real board with a Norwegian SIM card (Ice): sendi
 
 ## Install
 
-**Arduino IDE:** download [KihMMS-0.1.0.zip](https://github.com/K-I-H/KihMMS/archive/refs/tags/v0.1.0.zip), then
+**Arduino IDE:** download [KihMMS-0.2.0.zip](https://github.com/K-I-H/KihMMS/archive/refs/tags/v0.2.0.zip), then
 *Sketch → Include Library → Add .ZIP Library…* and pick the file. (Newest from `main`:
 [main.zip](https://github.com/K-I-H/KihMMS/archive/refs/heads/main.zip).)
 
@@ -59,6 +59,18 @@ Default pins (LilyGO T-A7670): modem TX/RX on GPIO 26/27, PWRKEY 4, modem power 
 | `extras/docs/FINDINGS.md` | What blocks MMS on these modems and how it was solved – the notes we wish we had found. |
 | `extras/docs/OPERATORS.md` | MMS settings (APN, MMSC, proxy) per operator, and which are tested. |
 
+## Examples
+
+Open them in the Arduino IDE under *File → Examples → KihMMS*.
+
+| Example | What it shows | Needs |
+|---|---|---|
+| **BuildMms** | Build an MMS with subject, text (æøå, emoji) and an attachment; print it and read it back | any ESP32 |
+| **DecodeSmsPdu** | Decode SMS in PDU mode: GSM 7-bit with æøå and €, UCS2 with emoji, sender with letters | any ESP32 |
+| **ParseMmsNotification** | Read an MMS notification: sender, subject and the URL where the MMS is fetched | any ESP32 |
+| **SendSms** | Switch on the modem and send an SMS with AT commands | LilyGO T-A7670 + SIM |
+| **ReceiveSms** | Receive SMS (stored on the SIM, read in PDU mode) and decode them; recognise MMS notifications | LilyGO T-A7670 + SIM |
+
 ## OTAMMS – firmware over MMS
 
 A new program for the board, delivered as MMS: the program file is split into pieces, each piece is signed (HMAC-SHA256
@@ -72,7 +84,8 @@ from the first message to the new program running. Coming to this repository tog
 - [x] MMS encoder, SMS PDU decoder, MMS notification/message parser
 - [ ] Modem driver (`KihModem`: SMS send/receive, SIM storage, network status)
 - [ ] MMS over PPP (send with attachment, fetch and save to SD)
-- [ ] Examples: send SMS, receive SMS, send MMS, picture from SD, receive to SD, auto-reply
+- [x] Examples: build MMS, decode SMS, parse MMS notification, send SMS, receive SMS
+- [ ] Examples with the driver: send MMS, picture from SD, receive to SD, auto-reply
 - [ ] OTAMMS receiver, Python packer and the Android sender app
 
 ## License
