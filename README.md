@@ -69,7 +69,7 @@ Open them in the Arduino IDE under *File → Examples → KihMMS*.
 | **DecodeSmsPdu** | Decode SMS in PDU mode: GSM 7-bit with æøå and €, UCS2 with emoji, sender with letters | any ESP32 |
 | **ParseMmsNotification** | Read an MMS notification: sender, subject and the URL where the MMS is fetched | any ESP32 |
 | **SendSms** | Switch on the modem and send an SMS with AT commands | LilyGO T-A7670 + SIM |
-| **ReceiveSms** | Receive SMS (stored on the SIM, read in PDU mode) and decode them; recognise MMS notifications | LilyGO T-A7670 + SIM |
+| **ReceiveSms** | Receive SMS (stored on the SIM, read in PDU mode) and decode them; recognise MMS notifications ✅ *tested on T-A7670G* | LilyGO T-A7670 + SIM |
 
 ## OTAMMS – firmware over MMS
 
