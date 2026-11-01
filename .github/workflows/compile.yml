@@ -8,7 +8,7 @@ on:
 
 jobs:
   compile:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04   # compile-sketches needs a Python version that ubuntu-26.04 images lack
     strategy:
       fail-fast: false
       matrix:
