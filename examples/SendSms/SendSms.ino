@@ -52,15 +52,28 @@ void setup() {
     delay(1000);
   }
 
+  // Being on the network is not enough: the SIM's SMS part may still be starting. The modem says "SMS DONE" (and
+  // "PB DONE") when it is ready. An SMS sent before that ends with "+CME ERROR: AT command timeout" after a minute or two.
+  // So wait for "SMS DONE" – or 30 s, in case it came before we started listening.
+  Serial.println("Waiting for the SIM to be ready for SMS …");
+  String seen;
+  uint32_t t0 = millis();
+  while (millis() - t0 < 30000 && seen.indexOf("SMS DONE") < 0) while (modem.available()) seen += (char)modem.read();
+
   // Text mode with the GSM character set: fine for plain letters and digits. For æøå and emoji, use UCS2
   // (AT+CSCS="UCS2", AT+CSMP=17,167,2,25 and the text as UTF-16 hex) – the full driver in KihMMS will do that for you.
   at("AT+CMGF=1");
   at("AT+CSCS=\"GSM\"");
-  modem.print("AT+CMGS=\"" NUMBER "\"\r\n");
-  delay(500);                                   // wait for the '>' prompt
-  modem.print("Hello from ESP32 and KihMMS");
-  modem.write(0x1A);                            // Ctrl+Z ends the message
-  at("", 15000);                                // +CMGS: <ref> and OK when sent
+  for (int attempt = 1; attempt <= 3; attempt++) {
+    modem.print("AT+CMGS=\"" NUMBER "\"\r\n");
+    delay(500);                                 // wait for the '>' prompt
+    modem.print("Hello from ESP32 and KihMMS");
+    modem.write(0x1A);                          // Ctrl+Z ends the message
+    String r = at("", 20000);                   // "+CMGS: <ref>" and OK when sent
+    if (r.indexOf("+CMGS:") >= 0) { Serial.println("SMS sent."); break; }
+    Serial.printf("Not sent (attempt %d of 3), trying again in 10 s …\n", attempt);
+    delay(10000);
+  }
 }
 
 void loop() {

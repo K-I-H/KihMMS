@@ -68,7 +68,7 @@ Standardpinner (LilyGO T-A7670): modem TX/RX på GPIO 26/27, PWRKEY 4, strøm ti
 | **BuildMms** | Lag en MMS med emne, tekst (æøå, emoji) og vedlegg; skriv den ut og les den tilbake | hvilken som helst ESP32 |
 | **DecodeSmsPdu** | Dekod SMS i PDU-modus: GSM-alfabetet med æøå og €, UCS2 med emoji, avsender med bokstaver | hvilken som helst ESP32 |
 | **ParseMmsNotification** | Les et MMS-varsel: avsender, emne og adressen der MMS-en hentes | hvilken som helst ESP32 |
-| **SendSms** | Slå på modemet og send en SMS med AT-kommandoer | LilyGO T-A7670 + SIM |
+| **SendSms** | Slå på modemet og send en SMS med AT-kommandoer ✅ *prøvd på T-A7670G* | LilyGO T-A7670 + SIM |
 | **ReceiveSms** | Motta SMS (lagret på SIM-kortet, lest i PDU-modus) og dekod dem; kjenn igjen MMS-varsler ✅ *prøvd på T-A7670G* | LilyGO T-A7670 + SIM |
 
 ## OTAMMS – nytt program over MMS
