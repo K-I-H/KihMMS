@@ -26,7 +26,7 @@ automatisk, og **oppdatere programmet på kortet over MMS** (OTAMMS, se under).
 
 ## Installering
 
-**Arduino IDE:** last ned [KihMMS-0.2.0.zip](https://github.com/K-I-H/KihMMS/archive/refs/tags/v0.2.0.zip), og velg
+**Arduino IDE:** last ned [KihMMS-0.2.1.zip](https://github.com/K-I-H/KihMMS/archive/refs/tags/v0.2.1.zip), og velg
 *Skisse → Inkluder bibliotek → Legg til .ZIP-bibliotek …* og fila. (Nyeste fra `main`:
 [main.zip](https://github.com/K-I-H/KihMMS/archive/refs/heads/main.zip).)
 

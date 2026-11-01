@@ -29,12 +29,20 @@ void setup() {
   Serial.begin(115200);
   modem.begin(115200, SERIAL_8N1, MODEM_RX, MODEM_TX);
   pinMode(MODEM_POWER, OUTPUT); digitalWrite(MODEM_POWER, HIGH);
-  // PWRKEY: one pulse of about 1 s switches the modem on. Do it in one go: a much longer press switches it off again.
+  // PWRKEY: a pulse of about 1 s switches the modem on – or OFF if it is already on (it keeps running when a new sketch is
+  // uploaded). So ask first, and pulse only when it doesn't answer. Do the pulse in one go: a much longer press also
+  // switches it off.
   pinMode(MODEM_PWRKEY, OUTPUT);
-  digitalWrite(MODEM_PWRKEY, HIGH); delay(1000); digitalWrite(MODEM_PWRKEY, LOW);
-
+  digitalWrite(MODEM_PWRKEY, LOW);
   Serial.println("Waiting for the modem …");
-  for (int i = 0; i < 30 && at("AT", 500).indexOf("OK") < 0; i++) delay(500);
+  bool answers = false;
+  for (int i = 0; i < 6 && !answers; i++) answers = at("AT", 500).indexOf("OK") >= 0;
+  for (int attempt = 0; attempt < 2 && !answers; attempt++) {
+    Serial.println("No answer: pulsing PWRKEY");
+    digitalWrite(MODEM_PWRKEY, HIGH); delay(1000); digitalWrite(MODEM_PWRKEY, LOW);
+    for (int i = 0; i < 40 && !answers; i++) answers = at("AT", 500).indexOf("OK") >= 0;
+  }
+  if (!answers) { Serial.println("The modem does not answer. Check power (battery / 2 A USB) and the pins."); return; }
   if (strlen(SIM_PIN)) at(String("AT+CPIN=\"") + SIM_PIN + "\"", 3000);
 
   Serial.println("Waiting for the mobile network …");

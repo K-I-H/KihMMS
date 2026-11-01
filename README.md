@@ -26,7 +26,7 @@ Everything has been tried on a real board with a Norwegian SIM card (Ice): sendi
 
 ## Install
 
-**Arduino IDE:** download [KihMMS-0.2.0.zip](https://github.com/K-I-H/KihMMS/archive/refs/tags/v0.2.0.zip), then
+**Arduino IDE:** download [KihMMS-0.2.1.zip](https://github.com/K-I-H/KihMMS/archive/refs/tags/v0.2.1.zip), then
 *Sketch → Include Library → Add .ZIP Library…* and pick the file. (Newest from `main`:
 [main.zip](https://github.com/K-I-H/KihMMS/archive/refs/heads/main.zip).)
 

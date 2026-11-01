@@ -20,6 +20,17 @@ static KihMmsParser mms;
 String line;
 bool pduNext = false;
 
+// Does the modem answer "AT" within «ms» milliseconds?
+bool alive(uint32_t ms) {
+  uint32_t t = millis();
+  while (millis() - t < ms) {
+    modem.print("AT\r\n"); delay(500);
+    String r; while (modem.available()) r += (char)modem.read();
+    if (r.indexOf("OK") >= 0) return true;
+  }
+  return false;
+}
+
 void cmd(const String &c) { modem.print(c); modem.print("\r\n"); delay(300); while (modem.available()) modem.read(); }
 
 void setup() {
@@ -27,17 +38,27 @@ void setup() {
   modem.begin(115200, SERIAL_8N1, MODEM_RX, MODEM_TX);
   pinMode(MODEM_POWER, OUTPUT); digitalWrite(MODEM_POWER, HIGH);
   pinMode(MODEM_PWRKEY, OUTPUT);
-  digitalWrite(MODEM_PWRKEY, HIGH); delay(1000); digitalWrite(MODEM_PWRKEY, LOW);
+  digitalWrite(MODEM_PWRKEY, LOW);
+  // The modem may already be on: it keeps running when a new sketch is uploaded, and a PWRKEY pulse would then switch it
+  // OFF. So ask first, and pulse only when it doesn't answer. Twice, since a pulse may hit a modem that was just starting.
   Serial.println("Waiting for the modem …");
-  for (int i = 0; i < 30; i++) {
-    modem.print("AT\r\n"); delay(500);
-    String r; while (modem.available()) r += (char)modem.read();
-    if (r.indexOf("OK") >= 0) break;
+  bool answers = alive(3000);
+  for (int attempt = 0; attempt < 2 && !answers; attempt++) {
+    Serial.println("No answer: pulsing PWRKEY");
+    digitalWrite(MODEM_PWRKEY, HIGH); delay(1000); digitalWrite(MODEM_PWRKEY, LOW);
+    answers = alive(20000);                  // the A76xx needs about 10 s to boot
   }
+  if (!answers) { Serial.println("The modem does not answer. Check power (battery / 2 A USB) and the pins."); return; }
   cmd("ATE0");                               // no echo
   if (strlen(SIM_PIN)) cmd(String("AT+CPIN=\"") + SIM_PIN + "\"");
   cmd("AT+CMGF=0");                          // PDU mode
   cmd("AT+CNMI=2,1,0,0,0");                  // store on the SIM, tell us with +CMTI
+  Serial.println("Waiting for the mobile network …");
+  for (int i = 0; i < 90; i++) {
+    modem.print("AT+CEREG?\r\n"); delay(1000);
+    String r; while (modem.available()) r += (char)modem.read();
+    if (r.indexOf(",1") >= 0 || r.indexOf(",5") >= 0) break;   // 1 = home network, 5 = roaming
+  }
   modem.print("AT+CMGL=4\r\n");              // and read what is already stored
   Serial.println("Ready – send an SMS to the board.");
 }
