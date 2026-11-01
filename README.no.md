@@ -24,6 +24,22 @@ TCP kan være sperret av SIM-kortet. KihMMS går rundt begge deler:
 Alt er prøvd på et ekte kort med norsk SIM-kort (Ice): sende tekst og bilder, hente mottatte MMS (GIF, JPEG, ~300 KB), svare
 automatisk, og **oppdatere programmet på kortet over MMS** (OTAMMS, se under).
 
+## Installering
+
+**Arduino IDE:** last ned [KihMMS-0.1.0.zip](https://github.com/K-I-H/KihMMS/archive/refs/tags/v0.1.0.zip), og velg
+*Skisse → Inkluder bibliotek → Legg til .ZIP-bibliotek …* og fila. (Nyeste fra `main`:
+[main.zip](https://github.com/K-I-H/KihMMS/archive/refs/heads/main.zip).)
+
+**arduino-cli:**
+
+```bash
+arduino-cli config set library.enable_unsafe_install true
+arduino-cli lib install --git-url https://github.com/K-I-H/KihMMS.git
+```
+
+Deretter `#include <KihMMS.h>`. Krever ESP32-kjernen (arduino-esp32 3.x). Biblioteket sendes inn til Arduinos
+bibliotekbehandler når modemdriveren og eksemplene er på plass.
+
 ## Maskinvare
 
 | | |

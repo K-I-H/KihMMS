@@ -24,6 +24,22 @@ modem's own TCP stack can be blocked by the SIM card. KihMMS gets around both:
 Everything has been tried on a real board with a Norwegian SIM card (Ice): sending text and pictures, fetching received MMS
 (GIF, JPEG, ~300 KB), replying automatically, and **updating the board's firmware over MMS** (OTAMMS, see below).
 
+## Install
+
+**Arduino IDE:** download [KihMMS-0.1.0.zip](https://github.com/K-I-H/KihMMS/archive/refs/tags/v0.1.0.zip), then
+*Sketch → Include Library → Add .ZIP Library…* and pick the file. (Newest from `main`:
+[main.zip](https://github.com/K-I-H/KihMMS/archive/refs/heads/main.zip).)
+
+**arduino-cli:**
+
+```bash
+arduino-cli config set library.enable_unsafe_install true
+arduino-cli lib install --git-url https://github.com/K-I-H/KihMMS.git
+```
+
+Then `#include <KihMMS.h>`. Requires the ESP32 core (arduino-esp32 3.x). The library will be submitted to the Arduino
+Library Manager when the modem driver and examples are in.
+
 ## Hardware
 
 | | |
