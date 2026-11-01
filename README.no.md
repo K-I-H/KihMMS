@@ -2,6 +2,9 @@
 
 # KihMMS
 
+[![Compile examples](https://github.com/K-I-H/KihMMS/actions/workflows/compile.yml/badge.svg)](https://github.com/K-I-H/KihMMS/actions/workflows/compile.yml) [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE) ![ESP32](https://img.shields.io/badge/ESP32-arduino--esp32%203.x-orange) ![Modem](https://img.shields.io/badge/modem-SIMCom%20A76xx-green)
+
+
 **MMS og SMS for ESP32 med SIMCom A76xx 4G-modem** – et Arduino-bibliotek.
 
 > 🚧 **Under arbeid.** Repoet inneholder foreløpig kjernen på byte-nivå (lage MMS, dekode SMS i PDU-modus, lese
@@ -58,6 +61,7 @@ Standardpinner (LilyGO T-A7670): modem TX/RX på GPIO 26/27, PWRKEY 4, strøm ti
 | `src/kih_pdu.h` | `KihMmsBuilder` (M-Send.req), `KihSmsPdu` (SMS-dekoder), `KihMmsParser` (varsel, hentet melding, deler). Ren C++ (uten Arduino-typer). |
 | `extras/docs/FINDINGS.md` | Hva som stopper MMS på disse modemene, og hvordan det ble løst (på engelsk). |
 | `extras/docs/OPERATORS.md` | MMS-innstillinger per operatør, og hvilke som er prøvd. |
+| `extras/docs/AT-COMMANDS.md` | Jukselapp: A76xx-kommandoene for SMS (og GNSS), med innstillingene som virker og hvorfor (på engelsk). |
 
 ## Eksempler
 
