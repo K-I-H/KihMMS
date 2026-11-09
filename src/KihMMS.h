@@ -21,6 +21,8 @@
 #include "kih_pdu.h"
 #include "kih_smsout.h"
 #include "kih_gnss.h"
+#include "kih_fwpiece.h"
 #ifdef ARDUINO
 #include "kih_mms.h"
+#include "kih_otamms.h"
 #endif
