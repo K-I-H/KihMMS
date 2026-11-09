@@ -36,11 +36,15 @@ class KihAt {
     return true;
   }
 
+  // While paused the AT layer neither reads nor sends (the UART is lent to PPP). The queue is kept.
+  void pause(bool p) { paused = p; if (p) { running = false; len = 0; } }
+  bool isPaused() const { return paused; }
+
   bool busy() const { return running; }
   int queued() const { return count; }
 
   void loop() {
-    if (!s) return;
+    if (!s || paused) return;
     while (s->available()) {
       char c = (char)s->read();
       if (running && c == '>' && len == 0 && queue[head].data.length()) {   // the prompt: no newline after it
@@ -78,7 +82,7 @@ class KihAt {
   Stream *s = nullptr;
   Item queue[QUEUE];
   int head = 0, count = 0;
-  bool running = false;
+  bool running = false, paused = false;
   uint32_t sentAt = 0;
   char line[700];
   int len = 0;
