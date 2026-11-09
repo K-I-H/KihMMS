@@ -70,9 +70,9 @@ class KihAt {
   int head = 0, count = 0;
   bool running = false;
   uint32_t sentAt = 0;
-  char line[512];
+  char line[700];
   int len = 0;
-  char answer[1024];
+  char answer[4096];
 
   void handle(const char *l) {
     if (isNmea(l)) return;

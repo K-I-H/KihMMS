@@ -5,9 +5,9 @@
 //   power.begin(Serial1, 27, 26, 4, 12);   // RX, TX, PWRKEY, power enable (LilyGO T-A7670: 27, 26, 4, 12; -1 = not used)
 //   void loop() { at.loop(); power.loop(); if (power.ready()) { ... } }
 //
-// Sequence: power enable high, one PWRKEY pulse of 1 s, then "AT" about once a second until the modem answers OK (it takes
-// 5–10 s after the pulse). A modem that was already on is switched OFF by the same pulse, so when there is no answer after 15 s
-// the pulse is given once more (at most three times). The 1 s pulse is done in one go with delay(): if loop() is held up in the
+// Sequence: power enable high, then "AT" for 3 s: a modem that is already on (it keeps running when a new sketch is uploaded)
+// answers at once and gets no pulse, since a pulse would switch it OFF. Otherwise one PWRKEY pulse of 1 s, and "AT" about once a
+// second until it answers OK (5–10 s). No answer after 15 s: one more pulse (at most three). The 1 s pulse is done in one go with delay(): if loop() is held up in the
 // middle of it (a slow SD card did this), a too long pulse switches the modem off again. It only happens at start-up.
 // When the modem answers, the basic setup is queued: no echo, readable errors, full function, network registration messages,
 // caller ID and network time.
@@ -25,7 +25,7 @@ class KihPower {
     pwr = pwrkey;
     if (powerEnable >= 0) { pinMode(powerEnable, OUTPUT); digitalWrite(powerEnable, HIGH); }
     if (pwr >= 0) { pinMode(pwr, OUTPUT); digitalWrite(pwr, LOW); }
-    state = PULSE;
+    state = WAIT;            // ask first: a modem that is already on would be switched OFF by a pulse
     t = millis();
     pulses = 0;
   }
@@ -43,7 +43,7 @@ class KihPower {
     } else if (state == WAIT) {
       if (!at.busy() && at.queued() == 0)
         at.send("AT", [this](bool ok, const char *) { if (ok && state == WAIT) onAnswer(); }, 1000);
-      if (n - t > 15000) {
+      if (n - t > (pulses == 0 ? 3000u : 15000u)) {
         if (pulses < 3) { state = PULSE; t = n; }
         else state = FAILED;
       }
