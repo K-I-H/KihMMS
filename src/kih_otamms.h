@@ -47,6 +47,8 @@ class KihOtaMms {
       size_t n = m.parts[i].len;
       KihFwPiece p;
       if (p.find(d, n)) { any = true; take(p, m.from.c_str()); continue; }
+      // The old format without a version (an old sender app): say so instead of treating it as an ordinary MMS.
+      if (n >= 5 && !memcmp(d, "BXFW1", 5)) { any = true; say("old piece format (BXFW1): update the sender app"); continue; }
       // A contact card with the piece as base64 text.
       if (n > 8 && memmem(d, n, "BXFWB64:", 8)) {
         size_t max = n * 3 / 4 + 4;
