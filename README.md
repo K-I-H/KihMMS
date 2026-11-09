@@ -40,7 +40,7 @@ Everything has been tried on a real board with a Norwegian SIM card (Ice): sendi
 
 ## Install
 
-**Arduino IDE:** download [KihMMS-0.3.0.zip](https://github.com/K-I-H/KihMMS/archive/refs/tags/v0.3.0.zip), then
+**Arduino IDE:** download [KihMMS-0.4.0.zip](https://github.com/K-I-H/KihMMS/archive/refs/tags/v0.4.0.zip), then
 *Sketch → Include Library → Add .ZIP Library…* and pick the file. (Newest from `main`:
 [main.zip](https://github.com/K-I-H/KihMMS/archive/refs/heads/main.zip).)
 
@@ -76,6 +76,7 @@ Default pins (LilyGO T-A7670): modem TX/RX on GPIO 26/27, PWRKEY 4, modem power 
 | `src/kih_ppp.h` | `KihPpp`: a PPP data connection through the modem; the AT layer pauses and continues afterwards. |
 | `src/kih_mmsget.h`, `src/kih_mmssend.h` | `KihMmsGet` / `KihMmsSend`: fetch and send MMS through the operator's MMS proxy. |
 | `src/kih_gnss.h` | `KihGnss`: position, speed, time and satellites from `AT+CGNSSINFO`. Plain C++. |
+| `src/kih_otamms.h`, `src/kih_fwpiece.h` | `KihOtaMms`: OTAMMS receiver (number, CRC, version, signature, Update, confirmation); `KihFwPiece` / `KihSha256`: the piece format and HMAC-SHA256, plain C++. |
 | `src/kih_pdu.h` | `KihMmsBuilder` (M-Send.req), `KihSmsPdu` (SMS-DELIVER decoder), `KihMmsParser` (notification, retrieve-conf, parts). Plain C++ (no Arduino types). |
 | `extras/docs/FINDINGS.md` | What blocks MMS on these modems and how it was solved – the notes we wish we had found. |
 | `extras/docs/OPERATORS.md` | MMS settings (APN, MMSC, proxy) per operator, and which are tested. |
@@ -93,6 +94,7 @@ Open them in the Arduino IDE under *File → Examples → KihMMS*.
 | **SendSms** | Switch on the modem and send an SMS with AT commands ✅ *tested on T-A7670G* | LilyGO T-A7670 + SIM |
 | **ReceiveSms** | Receive SMS (stored on the SIM, read in PDU mode) and decode them; recognise MMS notifications ✅ *tested on T-A7670G* | LilyGO T-A7670 + SIM |
 | **SmsAndMms** | `KihMms`: SMS and MMS in and out, reply to an MMS by SMS, send a picture the ESP32 draws itself ✅ *tested on T-A7670G* | LilyGO T-A7670 + SIM |
+| **OtaMms** | OTAMMS: a new program over MMS from the OTAMMS app, replies per piece, confirmation from the new program ✅ *tested on T-A7670G* | LilyGO T-A7670 + SIM, the app |
 | **GnssPosition** | Position from the modem's GNSS receiver every 5 s, with a map link ✅ *tested on T-A7670G* | LilyGO T-A7670G + GPS antenna |
 
 ## OTAMMS – firmware over MMS
@@ -100,8 +102,10 @@ Open them in the Arduino IDE under *File → Examples → KihMMS*.
 A new program for the board, delivered as MMS: the program file is split into pieces, each piece is signed (HMAC-SHA256
 with a secret key) and sent as an MMS attachment. The board collects the pieces, checks the CRC of each piece and the
 signature of the whole program, writes it with `Update` and restarts. The board replies by SMS for each piece. An Android
-app sends the pieces directly (ordinary messaging apps filter unknown attachments). Tested: 620 KB in 3 MMS, about 2 minutes
-from the first message to the new program running. Not part of this library (yet).
+app sends the pieces directly (ordinary messaging apps filter unknown attachments). The version in each package is the time it
+was signed: a newer package is always accepted (also with an older program), but an old package can not be sent again. When the
+new program runs, it says so by SMS. The receiver is `KihOtaMms` (example **OtaMms**). Tested: 1 MB in 5 MMS, about 5 minutes
+from the first message to the confirmation. The Android app is not in this repository yet.
 
 ## Status
 
@@ -110,7 +114,8 @@ from the first message to the new program running. Not part of this library (yet
 - [x] MMS over PPP: fetch and send, with automatic fetching and operator settings from the SIM (`KihMms`)
 - [x] Examples: build MMS, decode SMS, parse MMS notification, send SMS, receive SMS, SMS and MMS, GNSS position
 - [ ] Examples: picture from SD card, save received MMS to SD
-- [ ] OTAMMS receiver, Python packer and the Android sender app
+- [x] OTAMMS receiver (`KihOtaMms`) with version check and confirmation
+- [ ] OTAMMS Python packer and the Android sender app
 
 ## License
 

@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.4.0
+- OTAMMS: a new program over MMS. `KihFwPiece` (the piece format "BXFW2", also as base64 in a contact card) and `KihSha256`
+  (SHA-256, HMAC-SHA256) in plain C++; `KihOtaMms` takes pieces only from one number, checks each piece (CRC-32), the version
+  (newer than the one installed, so an old signed package can not be sent again) and the signature over version + program,
+  installs with `Update`, restarts, and the new program reports "new firmware is running". An old sender app (format "BXFW1")
+  gets a clear answer.
+- Example: OtaMms.
+- Tested on a LilyGO T-A7670G R2 with an Ice SIM card and the OTAMMS app 1.8: 1 070 576 bytes in 5 MMS, installed, restarted
+  and confirmed by SMS. The piece format and the signature are also checked on a PC against Python's hashlib/hmac and RFC 4231.
+
 ## 0.3.0
 - The modem driver, in small parts that can be used on their own: `KihAt` (AT command queue, answers read without waiting,
   unsolicited lines), `KihPower` (PWRKEY, waits until the modem answers), `KihSms` (SMS stored on the SIM, long SMS joined,

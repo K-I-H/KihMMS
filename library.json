@@ -1,6 +1,6 @@
 {
   "name": "KihMMS",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "MMS and SMS for ESP32 with SIMCom A76xx 4G modems (A7670E/G/SA, LilyGO T-A7670): SMS and MMS in and out over PPP, emoji, long SMS, GNSS position.",
   "keywords": ["esp32", "mms", "sms", "simcom", "a7670", "lilygo", "4g", "lte"],
   "repository": { "type": "git", "url": "https://github.com/K-I-H/KihMMS.git" },
