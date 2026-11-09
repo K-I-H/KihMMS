@@ -37,6 +37,12 @@ class KihSms {
     };
     at.send("AT+CMGF=0");
     at.send("AT+CNMI=2,1,0,0,0");
+    readStored();
+  }
+
+  // Reads everything stored on the SIM and deletes it. Also call it after the UART has been lent out (PPP): messages that
+  // arrived meanwhile are on the SIM, but their +CMTI was never seen.
+  void readStored() {
     at.send("AT+CMGL=4", [this](bool ok, const char *a) { if (ok) readList(a); }, 15000);
     at.send("AT+CMGD=1,4", nullptr, 15000);   // delete everything that has been read
   }
