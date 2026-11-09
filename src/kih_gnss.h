@@ -37,7 +37,7 @@ struct KihGnss {
     return true;
   }
 
-  static double degrees(const char *v, const char *hemi) {
+  static double toDegrees(const char *v, const char *hemi) {
     if (!*v) return NAN;
     double x = atof(v);
     if (fabs(x) > 180) { double d = floor(x / 100); x = d + (x - d * 100) / 60; }   // ddmm.mmmm
@@ -63,8 +63,8 @@ struct KihGnss {
     if (h < 2) return true;                                     // no fix yet
     for (int i = 1; i < h - 1; i++) { field(p, i, f, sizeof f); satellites += atoi(f); }
     char v[24], hemi[4];
-    field(p, h - 1, v, sizeof v); field(p, h, hemi, sizeof hemi); lat = degrees(v, hemi);
-    field(p, h + 1, v, sizeof v); field(p, h + 2, hemi, sizeof hemi); lon = degrees(v, hemi);
+    field(p, h - 1, v, sizeof v); field(p, h, hemi, sizeof hemi); lat = toDegrees(v, hemi);
+    field(p, h + 1, v, sizeof v); field(p, h + 2, hemi, sizeof hemi); lon = toDegrees(v, hemi);
     if (field(p, h + 3, f, sizeof f) && strlen(f) >= 6)        // ddmmyy
       snprintf(date, sizeof date, "%.2s.%.2s.20%.2s", f, f + 2, f + 4);
     if (field(p, h + 4, f, sizeof f) && strlen(f) >= 6)        // hhmmss.s
