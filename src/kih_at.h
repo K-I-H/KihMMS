@@ -22,11 +22,15 @@ class KihAt {
   void begin(Stream &port) { s = &port; }
 
   // Queues a command. timeoutMs: how long to wait for OK/ERROR. Returns false when the queue is full.
-  bool send(const char *cmd, Done done = nullptr, uint32_t timeoutMs = 5000) {
+  bool send(const char *cmd, Done done = nullptr, uint32_t timeoutMs = 5000) { return sendWithData(cmd, nullptr, done, timeoutMs); }
+
+  // A command that answers with the prompt "> " (AT+CMGS): «data» is written after the prompt, ended with Ctrl-Z.
+  bool sendWithData(const char *cmd, const char *data, Done done = nullptr, uint32_t timeoutMs = 5000) {
     if (count >= QUEUE) return false;
     Item &it = queue[(head + count++) % QUEUE];
     strncpy(it.cmd, cmd, sizeof it.cmd - 1);
     it.cmd[sizeof it.cmd - 1] = 0;
+    it.data = data ? String(data) : String();
     it.done = done;
     it.timeout = timeoutMs;
     return true;
@@ -39,6 +43,12 @@ class KihAt {
     if (!s) return;
     while (s->available()) {
       char c = (char)s->read();
+      if (running && c == '>' && len == 0 && queue[head].data.length()) {   // the prompt: no newline after it
+        s->print(queue[head].data);
+        s->write(0x1A);
+        queue[head].data = String();
+        continue;
+      }
       if (c == '\r') continue;
       if (c != '\n') { if (len < (int)sizeof line - 1) line[len++] = c; continue; }
       line[len] = 0;
@@ -64,7 +74,7 @@ class KihAt {
 
  private:
   static const int QUEUE = 16;
-  struct Item { char cmd[160]; Done done; uint32_t timeout; };
+  struct Item { char cmd[160]; String data; Done done; uint32_t timeout; };
   Stream *s = nullptr;
   Item queue[QUEUE];
   int head = 0, count = 0;
@@ -114,6 +124,7 @@ class KihAt {
   void finish(bool ok) {
     Done d = queue[head].done;
     queue[head].done = nullptr;
+    queue[head].data = String();
     head = (head + 1) % QUEUE;
     count--;
     running = false;

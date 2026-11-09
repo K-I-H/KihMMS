@@ -14,8 +14,10 @@
 #pragma once
 #include <Arduino.h>
 #include <functional>
+#include <memory>
 #include "kih_at.h"
 #include "kih_pdu.h"
+#include "kih_smsout.h"
 
 class KihSms {
  public:
@@ -39,6 +41,30 @@ class KihSms {
     at.send("AT+CMGD=1,4", nullptr, 15000);   // delete everything that has been read
   }
 
+  // Sends «text» (UTF-8) to «number» ("+47…"): GSM 7-bit or UCS2, as a concatenated SMS when it is long. done(ok) when every
+  // part has been handled. A part that fails is tried once more (an SMS sent right after start-up can time out).
+  bool send(const char *number, const char *text, std::function<void(bool ok)> done = nullptr) {
+    static KihSmsSubmit out;
+    int parts = out.build(number, text, ref++);
+    if (parts == 0) { if (done) done(false); return false; }
+    auto left = std::make_shared<int>(parts);
+    auto allOk = std::make_shared<bool>(true);
+    for (int i = 0; i < parts; i++) {
+      char cmd[24];
+      snprintf(cmd, sizeof cmd, "AT+CMGS=%d", out.length(i));
+      String c = cmd, pdu = out.hex(i);
+      auto last = [left, allOk, done](bool ok) {
+        if (!ok) *allOk = false;
+        if (--*left == 0 && done) done(*allOk);
+      };
+      at.sendWithData(cmd, out.hex(i), [this, c, pdu, last](bool ok, const char *) {
+        if (ok) { last(true); return; }
+        at.sendWithData(c.c_str(), pdu.c_str(), [last](bool ok2, const char *) { last(ok2); }, 60000);
+      }, 60000);
+    }
+    return true;
+  }
+
   void loop() {
     for (Long &l : parts)
       if (l.ref >= 0 && millis() - l.first > 60000) deliver(l);
@@ -54,6 +80,7 @@ class KihSms {
   };
   KihAt &at;
   bool started = false;
+  uint8_t ref = (uint8_t)esp_random();
   KihSmsPdu pdu;
   Long parts[3];
 
