@@ -75,25 +75,21 @@ void setup() {
       if (strcmp(m.parts[i].type, "application/smil")) reply += String("\n- ") + m.parts[i].type + " (" + (m.parts[i].len + 512) / 1024 + " KB)";
       // m.partData(i) points to the bytes, e.g. to save a picture on an SD card.
     }
-    String to = m.from;                                   // some operators give the MMS sender without "+"
-    if (to.length() > 8 && isdigit((unsigned char)to[0])) to = "+" + to;
-    modem.sendSms(to.c_str(), reply.c_str());
+    modem.sendSms(m.from.c_str(), reply.c_str());
   };
 
   modem.onMmsSent = [](bool ok, const char *status) { Serial.printf("MMS %s: %s\n", ok ? "sent" : "NOT sent", status); };
 
-  modem.begin(Serial1, MODEM_RX, MODEM_TX, MODEM_PWRKEY, MODEM_POWER);
+  modem.onReady = [] {
+    Serial.printf("Ready (network %s). Send an SMS or MMS to the board, or type: sms <number> <text> / mms <number>\n", modem.networkCode());
+  };
+
+  modem.begin(Serial1, MODEM_RX, MODEM_TX, MODEM_PWRKEY, MODEM_POWER);   // or just modem.begin() for the LilyGO T-A7670
   Serial.println("Starting the modem …");
 }
 
 void loop() {
   modem.loop();                                           // never blocks
-
-  static bool announced = false;
-  if (!announced && modem.ready() && modem.networkCode()[0]) {
-    announced = true;
-    Serial.printf("Ready (network %s). Send an SMS or MMS to the board, or type: sms <number> <text> / mms <number>\n", modem.networkCode());
-  }
 
   if (Serial.available()) {
     String line = Serial.readStringUntil('\n');
@@ -107,7 +103,7 @@ void loop() {
       int n = drawPng(picture);
       bool queued = modem.sendMms(to.c_str(), "Hello from KihMMS 😀", "This picture was drawn by the ESP32 and sent as MMS over PPP.",
                                   picture, n, "image/png", "smiley.png");
-      Serial.println(queued ? "MMS queued" : "MMS NOT queued (one is already waiting)");
+      if (queued) Serial.println("MMS queued"); else Serial.printf("MMS NOT queued: %s\n", modem.lastError());
     }
   }
 }

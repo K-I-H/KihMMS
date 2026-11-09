@@ -13,6 +13,7 @@
 #pragma once
 #include <Arduino.h>
 #include <NetworkClient.h>
+#include <FS.h>
 #include "kih_pdu.h"
 
 struct KihMmsOperator {
@@ -30,6 +31,31 @@ struct KihMmsReceived {
   KihMmsPart parts[8];
 
   const uint8_t *partData(int i) const { return data + body + parts[i].start; }
+  // The first part whose type starts with «typePrefix» ("image/", "audio/", "text/plain" …), or -1.
+  int findPart(const char *typePrefix) const {
+    for (int i = 0; i < count; i++) if (!strncmp(parts[i].type, typePrefix, strlen(typePrefix))) return i;
+    return -1;
+  }
+  // Saves part i as a file (SD, SD_MMC, LittleFS …):  m.save(i, SD, "/mms1.jpg").
+  bool save(int i, fs::FS &fs, const char *path) const {
+    if (i < 0 || i >= count) return false;
+    File f = fs.open(path, FILE_WRITE);
+    if (!f) return false;
+    size_t n = f.write(partData(i), parts[i].len);
+    f.close();
+    return n == (size_t)parts[i].len;
+  }
+  // A file extension that fits part i ("jpg", "png", "gif", "txt" …; "bin" when unknown).
+  const char *extension(int i) const {
+    if (i < 0 || i >= count) return "bin";
+    static const char *t[][2] = { { "image/jpeg", "jpg" }, { "image/jpg", "jpg" }, { "image/png", "png" }, { "image/gif", "gif" },
+                                  { "image/bmp", "bmp" }, { "image/webp", "webp" }, { "text/plain", "txt" }, { "text/x-vcard", "vcf" },
+                                  { "text/vcard", "vcf" }, { "audio/amr", "amr" }, { "audio/mpeg", "mp3" }, { "audio/wav", "wav" },
+                                  { "audio/x-wav", "wav" }, { "audio/midi", "mid" }, { "video/mp4", "mp4" }, { "video/3gpp", "3gp" },
+                                  { "application/smil", "smil" } };
+    for (auto &e : t) if (!strncmp(parts[i].type, e[0], strlen(e[0]))) return e[1];
+    return "bin";
+  }
   ~KihMmsReceived() { clear(); }
   void clear() { if (data) free(data); data = nullptr; len = body = count = 0; from = subject = text = ""; }
 };
