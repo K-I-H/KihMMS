@@ -7,9 +7,20 @@
 
 **MMS and SMS for ESP32 with SIMCom A76xx 4G modems** – an Arduino library.
 
-> 🚧 **Work in progress.** This repository currently contains the byte-level core (building MMS, decoding SMS in PDU mode,
-> reading MMS notifications and messages). The modem driver, the PPP transfer and the examples are being moved in from
-> the project where all of this was developed and tested on real hardware. See [Status](#status).
+```cpp
+#include <KihMMS.h>
+KihMms modem;
+
+void setup() {
+  modem.onSms = [](const char *from, const char *text) { Serial.printf("%s: %s
+", from, text); };
+  modem.onMms = [](const KihMmsReceived &m) { Serial.printf("MMS from %s: %s (%d parts)
+", m.from.c_str(), m.text.c_str(), m.count); };
+  modem.begin(Serial1, 27, 26, 4, 12);                   // LilyGO T-A7670: RX, TX, PWRKEY, power
+}
+void loop() { modem.loop(); }                            // never blocks
+// modem.sendSms("+4712345678", "Hei 😀");   modem.sendMms("+4712345678", "Subject", "Text", jpeg, len);
+```
 
 🇳🇴 [Norsk versjon](README.no.md)
 
@@ -29,7 +40,7 @@ Everything has been tried on a real board with a Norwegian SIM card (Ice): sendi
 
 ## Install
 
-**Arduino IDE:** download [KihMMS-0.2.1.zip](https://github.com/K-I-H/KihMMS/archive/refs/tags/v0.2.1.zip), then
+**Arduino IDE:** download [KihMMS-0.3.0.zip](https://github.com/K-I-H/KihMMS/archive/refs/tags/v0.3.0.zip), then
 *Sketch → Include Library → Add .ZIP Library…* and pick the file. (Newest from `main`:
 [main.zip](https://github.com/K-I-H/KihMMS/archive/refs/heads/main.zip).)
 
@@ -40,8 +51,8 @@ arduino-cli config set library.enable_unsafe_install true
 arduino-cli lib install --git-url https://github.com/K-I-H/KihMMS.git
 ```
 
-Then `#include <KihMMS.h>`. Requires the ESP32 core (arduino-esp32 3.x). The library will be submitted to the Arduino
-Library Manager when the modem driver and examples are in.
+Then `#include <KihMMS.h>`. Requires the ESP32 core (arduino-esp32 3.x). Enable PSRAM in the board settings (an MMS can be
+several hundred KB).
 
 ## Hardware
 
@@ -58,6 +69,13 @@ Default pins (LilyGO T-A7670): modem TX/RX on GPIO 26/27, PWRKEY 4, modem power 
 
 | File | What |
 |---|---|
+| `src/kih_mms.h` | **`KihMms`**: everything in one object – SMS and MMS in and out, incoming MMS fetched by themselves, operator settings from the SIM. |
+| `src/kih_at.h` | `KihAt`: one AT command at a time from a queue, answers read in `loop()` without waiting, unsolicited lines to `onUrc`. |
+| `src/kih_power.h` | `KihPower`: switches the modem on (asks first, so a running modem is not switched off by PWRKEY). |
+| `src/kih_sms.h`, `src/kih_smsout.h` | `KihSms`: SMS stored on the SIM, long SMS joined; `KihSmsSubmit`: GSM 7-bit or UCS2, long SMS split (emoji never broken). |
+| `src/kih_ppp.h` | `KihPpp`: a PPP data connection through the modem; the AT layer pauses and continues afterwards. |
+| `src/kih_mmsget.h`, `src/kih_mmssend.h` | `KihMmsGet` / `KihMmsSend`: fetch and send MMS through the operator's MMS proxy. |
+| `src/kih_gnss.h` | `KihGnss`: position, speed, time and satellites from `AT+CGNSSINFO`. Plain C++. |
 | `src/kih_pdu.h` | `KihMmsBuilder` (M-Send.req), `KihSmsPdu` (SMS-DELIVER decoder), `KihMmsParser` (notification, retrieve-conf, parts). Plain C++ (no Arduino types). |
 | `extras/docs/FINDINGS.md` | What blocks MMS on these modems and how it was solved – the notes we wish we had found. |
 | `extras/docs/OPERATORS.md` | MMS settings (APN, MMSC, proxy) per operator, and which are tested. |
@@ -74,6 +92,8 @@ Open them in the Arduino IDE under *File → Examples → KihMMS*.
 | **ParseMmsNotification** | Read an MMS notification: sender, subject and the URL where the MMS is fetched | any ESP32 |
 | **SendSms** | Switch on the modem and send an SMS with AT commands ✅ *tested on T-A7670G* | LilyGO T-A7670 + SIM |
 | **ReceiveSms** | Receive SMS (stored on the SIM, read in PDU mode) and decode them; recognise MMS notifications ✅ *tested on T-A7670G* | LilyGO T-A7670 + SIM |
+| **SmsAndMms** | `KihMms`: SMS and MMS in and out, reply to an MMS by SMS, send a picture the ESP32 draws itself ✅ *tested on T-A7670G* | LilyGO T-A7670 + SIM |
+| **GnssPosition** | Position from the modem's GNSS receiver every 5 s, with a map link ✅ *tested on T-A7670G* | LilyGO T-A7670G + GPS antenna |
 
 ## OTAMMS – firmware over MMS
 
@@ -81,15 +101,15 @@ A new program for the board, delivered as MMS: the program file is split into pi
 with a secret key) and sent as an MMS attachment. The board collects the pieces, checks the CRC of each piece and the
 signature of the whole program, writes it with `Update` and restarts. The board replies by SMS for each piece. An Android
 app sends the pieces directly (ordinary messaging apps filter unknown attachments). Tested: 620 KB in 3 MMS, about 2 minutes
-from the first message to the new program running. Coming to this repository together with the driver.
+from the first message to the new program running. Not part of this library (yet).
 
 ## Status
 
 - [x] MMS encoder, SMS PDU decoder, MMS notification/message parser
-- [ ] Modem driver (`KihModem`: SMS send/receive, SIM storage, network status)
-- [ ] MMS over PPP (send with attachment, fetch and save to SD)
-- [x] Examples: build MMS, decode SMS, parse MMS notification, send SMS, receive SMS
-- [ ] Examples with the driver: send MMS, picture from SD, receive to SD, auto-reply
+- [x] Modem driver: AT queue, power-on, SMS in and out (SIM storage, long SMS, emoji), GNSS
+- [x] MMS over PPP: fetch and send, with automatic fetching and operator settings from the SIM (`KihMms`)
+- [x] Examples: build MMS, decode SMS, parse MMS notification, send SMS, receive SMS, SMS and MMS, GNSS position
+- [ ] Examples: picture from SD card, save received MMS to SD
 - [ ] OTAMMS receiver, Python packer and the Android sender app
 
 ## License

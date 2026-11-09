@@ -1,7 +1,7 @@
 // KihMMS – the byte-level parts: building an MMS (M-Send.req), decoding received SMS in PDU mode, and reading MMS headers/parts.
 //
-// Everything in this file is plain C/C++ (no Arduino, no String), so it can be compiled and tested on a PC
-// (see extras/test/pdu_test.cpp). The modem driver (kih_modem.h) and the PPP transfer (kih_ppp.h) use these.
+// Everything in this file is plain C/C++ (no Arduino, no String), so it can be compiled and tested on a PC.
+// The SMS layer (kih_sms.h) and the MMS transfer (kih_mmsget.h, kih_mmssend.h) use these.
 //
 // References: OMA-WAP-MMS-ENC (MMS encapsulation, v1.2), WAP-230-WSP (WSP encoding of headers),
 // 3GPP TS 23.040 (SMS PDU) and 3GPP TS 23.038 (GSM 7-bit alphabet).
