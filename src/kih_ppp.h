@@ -35,6 +35,8 @@ class KihPpp {
 
   bool active() const { return state != IDLE; }
   const char *status() const { return info; }
+  // Where the PPP task is right now (for logging): starting PPP, waiting for the network, data mode, working, ending PPP, returned.
+  const char *step() const { return stage; }
   IPAddress localIP() const { return ip; }
 
   void loop() {
@@ -76,6 +78,7 @@ class KihPpp {
   bool connected = false;
   int tries = 0;
   const char *info = "";
+  const char *volatile stage = "";
   IPAddress ip;
 
   void check() {
@@ -93,12 +96,15 @@ class KihPpp {
   static void task(void *arg) {
     KihPpp &p = *(KihPpp *)arg;
     p.connected = false;
+    p.stage = "starting PPP";
     PPP.setApn(p.apn.c_str());
     PPP.setPins(p.tx, p.rx);
     bool started = PPP.begin(PPP_MODEM_SIM7600, 1, p.baud);
     if (started) {
+      p.stage = "waiting for the network";
       uint32_t t = millis();
       while (!PPP.attached() && millis() - t < 60000) delay(250);
+      p.stage = "data mode";
       PPP.mode(ESP_MODEM_MODE_DATA);
       t = millis();
       while (!PPP.connected() && millis() - t < 60000) delay(250);
@@ -109,13 +115,16 @@ class KihPpp {
       p.ip = PPP.localIP();
       p.info = "connected";
       PPP.setDefault();
+      p.stage = "working";
       if (p.work) p.work();
     } else {
       p.info = started ? "no PPP connection within 60 s (APN?)" : "PPP did not start";
     }
+    p.stage = "ending PPP";
     PPP.end();
     if (before && before != &PPP) before->setDefault();
     delay(1500);
+    p.stage = "returned";
     p.state = RETURNED;
     vTaskDelete(nullptr);
   }
