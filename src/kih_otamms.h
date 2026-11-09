@@ -63,7 +63,24 @@ class KihOtaMms {
   }
 
   // Call in loop(): installs a complete, checked program 10 s after the last piece (time for a reply SMS to go out).
-  void loop() { if (installAt && millis() - installAt > 10000) install(); }
+  // canSend: whether onMessage can deliver now (e.g. modem.ready()). After an update over MMS the new program says
+  // "new firmware is running" once, as soon as it can.
+  void loop(bool canSend = true) {
+    if (installAt && millis() - installAt > 10000) install();
+    if (canSend && !bootChecked) {
+      bootChecked = true;
+      Preferences pr;
+      pr.begin("kihota", false);
+      if (pr.getBool("new", false)) {
+        pr.putBool("new", false);
+        uint32_t v = pr.getUInt("ver", 0);
+        pr.end();
+        say(String("new firmware is running (version ") + v + ")");
+        return;
+      }
+      pr.end();
+    }
+  }
 
   // How far a program has come: pieces received and needed (0/0 when nothing is going on).
   int received() const { return got; }
@@ -78,6 +95,7 @@ class KihOtaMms {
   uint8_t *program = nullptr;
   uint8_t hmac[32];
   uint32_t installAt = 0;
+  bool bootChecked = false;
 
   void say(const String &s) { if (onMessage) onMessage(s.c_str()); }
 
@@ -135,6 +153,7 @@ class KihOtaMms {
     Preferences pr;
     pr.begin("kihota", false);
     pr.putUInt("ver", version);
+    pr.putBool("new", true);                             // the new program reports when it runs (loop())
     pr.end();
     say("installed, restarting");
     if (onRestart) onRestart();
